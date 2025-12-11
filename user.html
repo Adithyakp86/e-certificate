@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Your Certificate</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h2><i class="fas fa-certificate"></i> Certify</h2>
+            </div>
+            <div class="theme-toggle">
+                <button id="themeButton" class="theme-btn">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Get Your Certificate</h1>
+            <p>Enter your name below to generate and download your certificate</p>
+        </div>
+    </section>
+
+    <!-- Certificate Generator Section -->
+    <section class="generator-section">
+        <div class="container">
+            <h2>Your Certificate</h2>
+            <div class="generator-card glass-effect">
+                <div class="preview-container">
+                    <canvas id="certificateCanvas"></canvas>
+                    <div id="previewPlaceholder">
+                        <i class="fas fa-certificate preview-icon"></i>
+                        <p>Your certificate will appear here</p>
+                        <p class="small-text">Certificates maintain high quality with SVG templates</p>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="recipientName">Your Full Name</label>
+                    <input type="text" id="recipientName" placeholder="Enter your full name">
+                </div>
+                
+                <div class="button-group">
+                    <button id="generateBtn" class="btn-primary">
+                        <i class="fas fa-magic"></i> Generate Certificate
+                    </button>
+                    <button id="downloadBtn" class="btn-secondary" disabled>
+                        <i class="fas fa-download"></i> Download Certificate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3><i class="fas fa-certificate"></i> Certify</h3>
+                    <p>Creating beautiful certificates made simple</p>
+                </div>
+                <div class="social-icons">
+                    <a href="https://github.com/Adithyakp86" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/adithyakp86/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 E-Certificate Generator. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const recipientName = document.getElementById('recipientName');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const certificateCanvas = document.getElementById('certificateCanvas');
+        const previewPlaceholder = document.getElementById('previewPlaceholder');
+        const ctx = certificateCanvas.getContext('2d');
+        const themeButton = document.getElementById('themeButton');
+
+        // Theme Management
+        let currentTheme = 'light';
+        const themes = ['light', 'dark', 'gradient'];
+
+        // Event Listeners
+        generateBtn.addEventListener('click', generateCertificate);
+        downloadBtn.addEventListener('click', downloadCertificate);
+        themeButton.addEventListener('click', toggleTheme);
+
+        // Generate Certificate
+        function generateCertificate() {
+            const name = recipientName.value.trim();
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+
+            // Get template from localStorage
+            const templateDataStr = localStorage.getItem('certificateTemplate');
+            if (!templateDataStr) {
+                alert('No certificate template found. Please contact the administrator.');
+                return;
+            }
+
+            // Parse template data
+            const templateData = JSON.parse(templateDataStr);
+            
+            // Create image from template
+            const img = new Image();
+            img.onload = function() {
+                // Set canvas dimensions
+                certificateCanvas.width = templateData.width;
+                certificateCanvas.height = templateData.height;
+                
+                // Draw certificate template
+                ctx.drawImage(img, 0, 0);
+                
+                // Get font size from localStorage or use default
+                let fontSize = 30;
+                const savedFontSize = localStorage.getItem('certificateFontSize');
+                if (savedFontSize) {
+                    fontSize = parseInt(savedFontSize);
+                }
+                
+                // Apply font settings
+                ctx.font = `bold ${fontSize}px Poppins`;
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Add text shadow for better visibility
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                ctx.shadowBlur = 3;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                
+                // Get name position from localStorage or use default
+                let x, y;
+                const namePositionStr = localStorage.getItem('certificateNamePosition');
+                if (namePositionStr) {
+                    const namePosition = JSON.parse(namePositionStr);
+                    x = namePosition.x;
+                    y = namePosition.y;
+                } else {
+                    // Default position (centered)
+                    x = certificateCanvas.width / 2;
+                    y = certificateCanvas.height * 0.6; // 60% down the certificate
+                }
+                
+                // Draw name
+                ctx.fillText(name, x, y);
+                
+                // Reset shadow
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                
+                // Show canvas and hide placeholder
+                certificateCanvas.style.display = 'block';
+                previewPlaceholder.style.display = 'none';
+                
+                // Enable download button
+                downloadBtn.disabled = false;
+            };
+            
+            // Enhanced image loading for better quality
+            img.setAttribute('crossorigin', 'anonymous');
+            img.src = templateData.dataUrl;
+        }
+
+        // Download Certificate
+        function downloadCertificate() {
+            if (certificateCanvas.width === 0 || certificateCanvas.height === 0) {
+                alert('No certificate to download');
+                return;
+            }
+
+            const name = recipientName.value.trim();
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+
+            // Create temporary link
+            const link = document.createElement('a');
+            link.download = `certificate_${name.replace(/\s+/g, '_')}.png`;
+            link.href = certificateCanvas.toDataURL('image/png', 1.0); // Highest quality
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Toggle Theme
+        function toggleTheme() {
+            // Get current theme index
+            const currentIndex = themes.indexOf(currentTheme);
+            
+            // Calculate next theme index
+            const nextIndex = (currentIndex + 1) % themes.length;
+            
+            // Set new theme
+            currentTheme = themes[nextIndex];
+            
+            // Apply theme to document
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            // Update button icon
+            const icon = themeButton.querySelector('i');
+            if (currentTheme === 'light') {
+                icon.className = 'fas fa-moon';
+            } else if (currentTheme === 'dark') {
+                icon.className = 'fas fa-sun';
+            } else {
+                icon.className = 'fas fa-star';
+            }
+            
+            // Add animation effect
+            themeButton.style.transform = 'rotate(30deg)';
+            setTimeout(() => {
+                themeButton.style.transform = 'rotate(0deg)';
+            }, 300);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial theme
+            document.documentElement.setAttribute('data-theme', currentTheme);
+        });
+    </script>
+</body>
+</html>
