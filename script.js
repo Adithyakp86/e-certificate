@@ -140,6 +140,34 @@ function toggleTheme() {
     }, 300);
 }
 
+// Set Certificate Position - Make it globally accessible
+function setCertificatePosition(e) {
+    const rect = certificateCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Save position to localStorage
+    const position = {x, y};
+    localStorage.setItem('certificateNamePosition', JSON.stringify(position));
+    
+    // Update UI
+    const positionCoords = document.getElementById('positionCoords');
+    if (positionCoords) {
+        positionCoords.textContent = `X: ${Math.round(x)}, Y: ${Math.round(y)}`;
+    }
+    
+    // Visual feedback
+    ctx.beginPath();
+    ctx.arc(x, y, 10, 0, 2 * Math.PI);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    alert(`Name position set at X: ${Math.round(x)}, Y: ${Math.round(y)}`);
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     // Set initial theme
@@ -167,4 +195,19 @@ document.addEventListener('DOMContentLoaded', function() {
         heroContent.style.opacity = '1';
         heroContent.style.transform = 'translateY(0)';
     }, 300);
+    
+    // Setup position button handler
+    const setPositionBtn = document.getElementById('setPositionBtn');
+    if (setPositionBtn) {
+        setPositionBtn.addEventListener('click', function() {
+            const certificateCanvas = document.getElementById('certificateCanvas');
+            if (certificateCanvas.style.display === 'none' || certificateCanvas.style.display === '') {
+                alert('Please upload a certificate template first');
+                return;
+            }
+            
+            alert('Click on the certificate preview to set where the recipient name should appear.');
+            certificateCanvas.addEventListener('click', setCertificatePosition, {once: true});
+        });
+    }
 });
